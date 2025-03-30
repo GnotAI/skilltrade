@@ -6,6 +6,7 @@ import (
   "gorm.io/gorm"
 	"github.com/google/uuid"
   "github.com/GnotAI/skilltrade/internal/users"
+  "github.com/GnotAI/skilltrade/internal/skills"
 )
 
 type TradeRequest struct {
@@ -19,8 +20,8 @@ type TradeRequest struct {
 
 	Sender        users.User  `gorm:"foreignKey:SenderID;constraint:OnDelete:CASCADE"`
 	Receiver      users.User  `gorm:"foreignKey:ReceiverID;constraint:OnDelete:CASCADE"`
-	// SenderSkill   skills.Skill `gorm:"foreignKey:SenderSkillID;constraint:OnDelete:CASCADE"`
-	// ReceiverSkill skills.Skill `gorm:"foreignKey:ReceiverSkillID;constraint:OnDelete:CASCADE"`
+	SenderSkill   skills.Skill `gorm:"foreignKey:SenderSkillID;constraint:OnDelete:CASCADE"`
+	ReceiverSkill skills.Skill `gorm:"foreignKey:ReceiverSkillID;constraint:OnDelete:CASCADE"`
 }
 
 // BeforeCreate hook to generate UUID
