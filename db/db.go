@@ -60,9 +60,9 @@ func connectDB() {
 
 
 	// Run migrations
-	if err := MigrateTables(db); err != nil {
-		log.Fatal("Failed to migrate users table:", err)
-	}
+	// if err := MigrateTables(db); err != nil {
+	// 	log.Fatal("Failed to migrate users table:", err)
+	// }
 }
 
 // DisconnectDB gracefully closes the database connection
