@@ -9,8 +9,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-
-  "github.com/GnotAI/skilltrade/internal/users"
 )
 
 var DB *gorm.DB
@@ -62,7 +60,7 @@ func connectDB() {
 
 
 	// Run migrations
-	if err := users.MigrateUsersTable(db); err != nil {
+	if err := MigrateTables(db); err != nil {
 		log.Fatal("Failed to migrate users table:", err)
 	}
 }
