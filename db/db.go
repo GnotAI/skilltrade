@@ -9,6 +9,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+  "github.com/GnotAI/skilltrade/internal/users"
 )
 
 var DB *gorm.DB
@@ -29,11 +31,20 @@ func connectDB() {
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+    DisableAutomaticPing: true, // Prevents repeated CURRENT_DATABASE() checks
+    PrepareStmt: true, // Caches prepared statements to speed up queries
+    SkipDefaultTransaction: true, // Avoids extra overhead
 	})
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
 	}
+
+  if (os.Getenv("APP_ENV") == "development") {
+		db.Logger = logger.Default.LogMode(logger.Info)
+  } else {
+		db.Logger = logger.Default.LogMode(logger.Silent)
+  }
+
 
 	// Get the underlying SQL database connection
 	sqlDB, err := db.DB()
@@ -48,6 +59,12 @@ func connectDB() {
 
 	DB = db
 	log.Println("Database connected successfully")
+
+
+	// Run migrations
+	if err := users.MigrateUsersTable(db); err != nil {
+		log.Fatal("Failed to migrate users table:", err)
+	}
 }
 
 // DisconnectDB gracefully closes the database connection
