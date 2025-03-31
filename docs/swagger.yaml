@@ -1,7 +1,9 @@
 openapi: 3.0.3
+# swagger: "3.0"
 info:
   title: Skilltrade API
   description: API for facilitating exchange of skills between creatives.
+  contact: {}
   version: 1.0.0
 
 servers:
@@ -9,10 +11,27 @@ servers:
     description: Local development server
 
 paths:
+  /docs/swagger:
+    get:
+      summary: Swagger UI
+      description: Serves the Swagger UI for API documentation
+      tags:
+      - Documentation
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Swagger UI Loaded
+          schema:
+            type: string
   /users:
     post:
       summary: Add a new user
       operationId: CreateUserHandler
+      tags:
+      - Skilltrade API
       requestBody:
         required: true
         content:
@@ -35,6 +54,8 @@ paths:
     put:
       summary: Update a user's fields by ID
       operationId: UpdateUserHandler
+      tags:
+      - Skilltrade API
       parameters:
         - name: id
           in: path
@@ -63,6 +84,8 @@ paths:
     delete:
       summary: Delete a user by ID
       operationId: DeleteUserHandler
+      tags:
+      - Skilltrade API
       parameters:
         - name: id
           in: path
