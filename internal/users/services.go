@@ -1,33 +1,39 @@
 package users
 
 import (
-	"fmt"
+  "fmt"
 
-	"github.com/GnotAI/skilltrade/utils/hash"
-	"github.com/google/uuid"
+  "github.com/GnotAI/skilltrade/utils/hash"
+  "github.com/google/uuid"
 )
 
 type UserService struct {
-	Repo *UserRepository
+  Repo *UserRepository
 }
 
 func NewUserService(repo *UserRepository) *UserService {
-	return &UserService{Repo: repo}
+  return &UserService{Repo: repo}
 }
 
 // CreateUser handles user creation
 func (s *UserService) CreateUser(email, password, fullName string) error {
+  // Validate password before hashing
+  if err := hash.ValidatePassword(password); err != nil {
+    return err 
+  }
+
+  // Hash the password before storing
   hashedPassword, err := hash.HashPassword(password)
   if err != nil {
     return err
   }
 
-	user := &User{
-		Email:     email,
-		Password:  hashedPassword, // Hashing should be done before calling Repo.CreateUser
-		FullName:  fullName,
-	}
-	return s.Repo.CreateUser(user)
+  user := &User{
+    Email:     email,
+    Password:  hashedPassword, // Hashing should be done before calling Repo.CreateUser
+    FullName:  fullName,
+  }
+  return s.Repo.CreateUser(user)
 }
 
 // UpdateUser updates an existing user
@@ -37,16 +43,16 @@ func (s *UserService) UpdateUser(userID uuid.UUID, email, password, fullName str
     return fmt.Errorf("user not found")
   }
 
-	req := &User{
-		ID:        userID,
+  req := &User{
+    ID:        userID,
     Email: existingUser.Email,
     Password: existingUser.Password,
     FullName: existingUser.FullName,
     CreatedAt: existingUser.CreatedAt,
-	}
+  }
 
-	// Update only the fields that are provided
-	if email != "" {
+  // Update only the fields that are provided
+  if email != "" {
     req.Email = email
 	}
 
@@ -55,6 +61,10 @@ func (s *UserService) UpdateUser(userID uuid.UUID, email, password, fullName str
 	}
 
 	if password != "" {
+    if err := hash.ValidatePassword(password); err != nil {
+      return err
+    }
+
 		hashedPassword, err := hash.HashPassword(password)
 		if err != nil {
 			return err

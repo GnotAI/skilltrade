@@ -44,7 +44,7 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 
 	err = h.Service.CreateUser(req.Email, req.Password, req.FullName)
 	if err != nil {
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -92,7 +92,7 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
       http.Error(w, "User not found", http.StatusNotFound)
       return
     }
-    http.Error(w, "Failed to update user", http.StatusInternalServerError)
+    http.Error(w, err.Error(), http.StatusInternalServerError)
     return
   }
 
