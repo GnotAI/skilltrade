@@ -38,6 +38,10 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+  if req.Email == "" || req.Password == "" || req.FullName == "" {
+    http.Error(w, "Missing email, password or full name", http.StatusBadRequest)
+  }
+
 	err = h.Service.CreateUser(req.Email, req.Password, req.FullName)
 	if err != nil {
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
@@ -83,10 +87,14 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	err = h.Service.UpdateUser(userID, req.Email, req.Password, req.FullName)
-	if err != nil {
-		http.Error(w, "Failed to update user", http.StatusInternalServerError)
-		return
-	}
+  if err != nil {
+    if err.Error() == "user not found" {
+      http.Error(w, "User not found", http.StatusNotFound)
+      return
+    }
+    http.Error(w, "Failed to update user", http.StatusInternalServerError)
+    return
+  }
 
 	resp, _ := sonic.Marshal(map[string]string{"message": "User updated successfully"})
 	w.WriteHeader(http.StatusOK)
@@ -107,11 +115,15 @@ func (h *UserHandler) DeleteUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = h.Service.DeleteUser(userID)
-	if err != nil {
-		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
-		return
-	}
+  err = h.Service.DeleteUser(userID)
+  if err != nil {
+    if err.Error() == "user not found" {
+      http.Error(w, "User not found", http.StatusNotFound)
+      return
+    }
+    http.Error(w, "Failed to delete user", http.StatusInternalServerError)
+    return
+  }
 
 	resp, _ := sonic.Marshal(map[string]string{"message": "User deleted successfully"})
 	w.WriteHeader(http.StatusOK)

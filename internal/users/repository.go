@@ -13,6 +13,15 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{DB: db}
 }
 
+func (r *UserRepository) GetUserByID(userID uuid.UUID) (*User, error) {
+    var user User
+    result := r.DB.First(&user, "id = ?", userID)
+    if result.Error != nil {
+        return nil, result.Error
+    }
+    return &user, nil
+}
+
 func (r *UserRepository) CreateUser(user *User) error {
 	return r.DB.Create(user).Error
 }
