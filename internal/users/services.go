@@ -3,6 +3,7 @@ package users
 import (
 	"fmt"
 
+	"github.com/GnotAI/skilltrade/utils/hash"
 	"github.com/google/uuid"
 )
 
@@ -16,9 +17,14 @@ func NewUserService(repo *UserRepository) *UserService {
 
 // CreateUser handles user creation
 func (s *UserService) CreateUser(email, password, fullName string) error {
+  hashedPassword, err := hash.HashPassword(password)
+  if err != nil {
+    return err
+  }
+
 	user := &User{
 		Email:     email,
-		Password:  password, // Hashing should be done before calling Repo.CreateUser
+		Password:  hashedPassword, // Hashing should be done before calling Repo.CreateUser
 		FullName:  fullName,
 	}
 	return s.Repo.CreateUser(user)
@@ -26,16 +32,34 @@ func (s *UserService) CreateUser(email, password, fullName string) error {
 
 // UpdateUser updates an existing user
 func (s *UserService) UpdateUser(userID uuid.UUID, email, password, fullName string) error {
-  _, err := s.Repo.GetUserByID(userID)
+  existingUser, err := s.Repo.GetUserByID(userID)
   if err != nil {
     return fmt.Errorf("user not found")
   }
 
 	req := &User{
 		ID:        userID,
-		Email:     email,
-		Password:  password, // Hashing should be done before calling Repo.CreateUser
-		FullName:  fullName,
+    Email: existingUser.Email,
+    Password: existingUser.Password,
+    FullName: existingUser.FullName,
+    CreatedAt: existingUser.CreatedAt,
+	}
+
+	// Update only the fields that are provided
+	if email != "" {
+    req.Email = email
+	}
+
+	if fullName != "" {
+    req.FullName = fullName
+	}
+
+	if password != "" {
+		hashedPassword, err := hash.HashPassword(password)
+		if err != nil {
+			return err
+		}
+		req.Password = hashedPassword
 	}
 
 	return s.Repo.UpdateUser(req)
