@@ -5,29 +5,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/GnotAI/skilltrade/db"
-	"github.com/GnotAI/skilltrade/internal/users"
 	"github.com/go-chi/chi/v5"
 )
 
-// Initialize Repositories
-var userRepo = users.NewUserRepository(db.DB)
 
-// Initialize services
-var userService = users.NewUserService(userRepo)
-
-// Initialize handlers
-var userHandler = users.NewUserHandler(userService)
-
-func UserRoutes(userService *users.UserService) *chi.Mux {
-	r := chi.NewRouter()
-
-	r.Post("/", userHandler.CreateUserHandler)
-	r.Put("/{id}", userHandler.UpdateUserHandler)
-	r.Delete("/{id}", userHandler.DeleteUserHandler)
-
-	return r
-}
 
 func RegisterRoutes() *chi.Mux {
 	r := chi.NewRouter()
@@ -35,6 +16,7 @@ func RegisterRoutes() *chi.Mux {
 
 	// Mount user routes
 	r.Mount("/users", UserRoutes(userService))
+  r.Mount("/docs", DocsRoute())
 
 	return r
 }
