@@ -4,7 +4,6 @@ import (
   "os"
 	"time"
   "errors"
-  "strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -37,35 +36,25 @@ func GenerateToken(userID string) (string, error) {
 	return token.SignedString(jwtSecret)
 }
 
-// ParseToken verifies and extracts claims from a JWT token
+// ParseToken takes a JWT token string, validates it and returns claims
 func ParseToken(tokenString string) (*Claims, error) {
-	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
-
-	// Check if the token string is empty after trimming
-	if tokenString == "" {
-		return nil, errors.New("token is required")
-	}
-
-	// Parse the token using your JWT secret key
-	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		// Return the secret key used for signing the token
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		// Verify that the token's signing method is correct
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
 		return jwtSecret, nil
 	})
 
-	// Check for errors during token parsing
-	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			return nil, errors.New("invalid token signature")
-		}
-		return nil, errors.New("could not parse token")
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid or expired token")
 	}
 
-	// Check if the token is valid
-	if !token.Valid {
-		return nil, errors.New("invalid token")
+	// Extract the claims
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		return nil, errors.New("invalid claims")
 	}
 
-	// If everything is fine, return the claims
 	return claims, nil
 }

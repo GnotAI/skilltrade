@@ -1,13 +1,10 @@
 package auth
 
 import (
-	"fmt"
-  "log"
 	"io"
 	"net/http"
 
 	"github.com/GnotAI/skilltrade/internal/users"
-	jwtutil "github.com/GnotAI/skilltrade/utils/jwt"
 	"github.com/bytedance/sonic"
 )
 
@@ -64,26 +61,6 @@ func (h *AuthHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 // SignInHandler handles user sign-ins (login)
 func (h *AuthHandler) SignInHandler(w http.ResponseWriter, r *http.Request) {
-
-	tokenString := r.Header.Get("Authorization")
-  log.Printf("Authorization token: %s", tokenString)
-	if tokenString != "" {
-		claims, err := jwtutil.ParseToken(tokenString)
-		if err == nil && claims.UserID != "" {
-      fmt.Println(claims)
-			// If the token is valid, we just return a message that the user is already logged in
-			resp := map[string]interface{}{
-				"message": "User is already authenticated",
-				"token":   tokenString, // Or you could include the token as a part of the response if necessary
-			}
-      log.Printf("Parsed Claims: %+v", claims)
-			respBytes, _ := sonic.Marshal(resp)
-			w.WriteHeader(http.StatusOK)
-			w.Write(respBytes)
-			return
-		}
-	}
-
   body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
@@ -122,9 +99,9 @@ func (h *AuthHandler) SignInHandler(w http.ResponseWriter, r *http.Request) {
 // RefreshHandler handles refreshing of the JWT token
 func (h *AuthHandler) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the token from the Authorization header
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		http.Error(w, "Authorization token missing", http.StatusUnauthorized)
+  authHeader, ok := r.Context().Value("AuthorizationToken").(string)
+	if !ok {
+		http.Error(w, "Authorization token not found", http.StatusUnauthorized)
 		return
 	}
 
