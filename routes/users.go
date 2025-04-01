@@ -7,10 +7,10 @@ import (
 )
 
 // Initialize Repositories
-var userRepo = users.NewUserRepository(db.DB)
+var UserRepo = users.NewUserRepository(db.DB)
 
 // Initialize services
-var userService = users.NewUserService(userRepo)
+var userService = users.NewUserService(UserRepo)
 
 // Initialize handlers
 var userHandler = users.NewUserHandler(userService)
