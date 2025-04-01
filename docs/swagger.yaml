@@ -1,14 +1,19 @@
-openapi: 3.0.3
-# swagger: "3.0"
+openapi: 3.0.0
 info:
-  title: Skilltrade API
-  description: API for facilitating exchange of skills between creatives.
-  contact: {}
+  title: SkillTrade API
+  description: API documentation for skill trade backend endpoints
   version: 1.0.0
 
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:3080
     description: Local development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
 paths:
   /docs/swagger:
@@ -26,126 +31,109 @@ paths:
           description: Swagger UI Loaded
           schema:
             type: string
-  /users:
+
+  /auth/signup:
     post:
-      summary: Add a new user
-      operationId: CreateUserHandler
-      tags:
-      - Skilltrade API
+      summary: Register a new user
+      description: Creates a new user account.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserInput"
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "johndoe@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "StrongPass123!"
       responses:
         "201":
-          description: User created successfully
+          description: User successfully created
+        "400":
+          description: Invalid input
+        "500":
+          description: Internal server error
+
+  /auth/signin:
+    post:
+      summary: Authenticate user and issue a JWT
+      description: Logs in a user, returning a JWT in the Authorization header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "johndoe@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "StrongPass123!"
+      responses:
+        "200":
+          description: Successfully authenticated
+          headers:
+            Authorization:
+              description: JWT token issued for authentication
+              schema:
+                type: string
+                example: "Bearer eyJhbGciOiJIUzI1NiIs..."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-        "400":
-          description: Bad Request
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIs..."
+        "401":
+          description: Invalid credentials
         "500":
-          description: Internal Server Error
+          description: Internal server error
 
-  /users/{id}:
-    put:
-      summary: Update a user's fields by ID
-      operationId: UpdateUserHandler
-      tags:
-      - Skilltrade API
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: The UUID of the user to delete
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserInput"
+  /auth/refresh:
+    post:
+      summary: Refresh JWT token
+      description: Refreshes the authentication token if a valid token is present in the Authorization header.
+      security:
+        - bearerAuth: []
       responses:
         "200":
-          description: User successfully updated
-        "400":
-          description: Invalid user ID
-        "404":
-          description: User not found
+          description: Successfully refreshed token
+          headers:
+            Authorization:
+              description: New JWT token issued for authentication
+              schema:
+                type: string
+                example: "Bearer eyJhbGciOiJIUzI1NiIs..."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIs..."
+        "401":
+          description: Unauthorized (Invalid or expired token)
         "500":
-          description: Internal Server Error (Unexpected failure)
-
-  /users/del/{id}:
-    delete:
-      summary: Delete a user by ID
-      operationId: DeleteUserHandler
-      tags:
-      - Skilltrade API
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: The UUID of the user to delete
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: User successfully deleted
-        "400":
-          description: Invalid user ID
-        "404":
-          description: User not found
-        "500":
-          description: Internal Server Error (Unexpected failure)
-
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Unique user ID.
-        email:
-          type: string
-          format: email
-          description: User's email address.
-        password:
-          type: string
-          minLength: 8
-          pattern: '^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
-          description: User's password.
-        full_name:
-          type: string
-          description: User's full name.
-        created_at:
-          type: string
-          format: date-time
-          description: Timestamp when user was created (ISO 8601 format).
-
-    UserInput:
-      type: object
-      required:
-        - email
-        - password
-        - full_name
-      properties:
-        email:
-          type: string
-          format: email
-          description: User's email address.
-        password:
-          type: string
-          minLength: 8
-          pattern: '^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
-          description: User's password.
-        full_name:
-          type: string
-          description: User's full name.
+          description: Internal server error

@@ -13,7 +13,7 @@ func DocsRoute() *chi.Mux {
 	r.Get("/swagger.yaml", docs.Serve)
 
 	// Swagger UI route
-	r.Get("/*", docs.SwaggerHandler)
+	r.Get("/swagger/*", docs.SwaggerHandler)
 
   return r
 }

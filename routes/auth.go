@@ -19,7 +19,7 @@ func AuthRoutes(authService *auth.AuthService) *chi.Mux {
 
 	r.Post("/signup", authHandler.SignUpHandler)
 	r.Post("/signin", authHandler.SignInHandler)
-	r.Get("/refresh", authHandler.RefreshHandler)
+	r.Post("/refresh", authHandler.RefreshHandler)
 
 	return r
 }

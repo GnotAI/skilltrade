@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/GnotAI/skilltrade/middleware"
+	"github.com/GnotAI/skilltrade/utils/logger"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -13,10 +15,14 @@ import (
 func RegisterRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
+  log := logger.NewLogger()
+
+  // Initialize middleware
+  r.Use(middleware.LoggerMiddleware(log))
 
 	// Mount user routes
   r.Mount("/auth", AuthRoutes(authService))
-	// r.Mount("/users", UserRoutes(userService))
+	r.Mount("/users", UserRoutes(userService))
   r.Mount("/docs", DocsRoute())
 
 	return r
