@@ -16,7 +16,7 @@ var skillService = skills.NewSkillService(skillRepo)
 var skillHandler = skills.NewSkillHandler(skillService)
 
 
-func skillsRoutes(authService *skills.SkillService) *chi.Mux {
+func skillsRoutes(skillHandler *skills.SkillHandler) *chi.Mux {
 	r := chi.NewRouter()
 
   r.Get("/", skillHandler.GetAllSkillsHandler) 

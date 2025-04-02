@@ -90,4 +90,3 @@ func (s *AuthService) RefreshToken(oldToken string) (string, error) {
 
 	return newToken, nil
 }
-

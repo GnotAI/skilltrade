@@ -7,7 +7,7 @@ import (
 )
 
 // Initialize Repository
-var authRepo = auth.NewAuthRepository(UserRepo)
+var authRepo = auth.NewAuthRepository(userRepo)
 
 // Initialize Service
 var authService = auth.NewAuthService(authRepo)

@@ -18,7 +18,7 @@ type UserSkill struct {
 	Skill skills.Skill `gorm:"foreignKey:SkillID;constraint:OnDelete:CASCADE"`
 
 	// Ensuring uniqueness for (user_id, skill_id, type)
-	UniqueIndex string `gorm:"uniqueIndex:user_skill_unique" gorm:"-"`
+  _ struct{} `gorm:"uniqueIndex:user_skill_unique,unique"`
 }
 
 // BeforeCreate hook to generate UUID for new user_skills entries
