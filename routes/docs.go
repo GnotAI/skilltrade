@@ -5,7 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func DocsRoute() *chi.Mux {
+func docsRoute() *chi.Mux {
   r := chi.NewRouter()
 
 

@@ -15,7 +15,7 @@ var userService = users.NewUserService(UserRepo)
 // Initialize handlers
 var userHandler = users.NewUserHandler(userService)
 
-func UserRoutes(userService *users.UserService) *chi.Mux {
+func userRoutes(userService *users.UserService) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/", userHandler.CreateUserHandler)

@@ -92,7 +92,7 @@ func (h *AuthHandler) SignInHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := sonic.Marshal(map[string]string{
 		"token": token,
 	}) 
-	w.Header().Set("Content-Type", "application/json")
+  w.Header().Set("Content-Type", "application/json")
   w.Write(resp)
 }
 
