@@ -50,3 +50,16 @@ func (r *UserSkillRepository) CreateUserSkill(userID, skillID uuid.UUID, skillTy
 
 	return nil
 }
+
+func (r *UserSkillRepository) GetUserSkill(userID, skillID uuid.UUID, skillType string) (*UserSkill, error) {
+    var userSkill *UserSkill
+    err := r.DB.Preload("User").Preload("Skill").
+        Where("user_id = ? AND skill_id = ? AND type = ?", userID, skillID, skillType).
+        First(&userSkill).Error
+
+    if err != nil {
+        return nil, err
+    }
+
+    return userSkill, nil
+}
