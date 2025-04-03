@@ -1,7 +1,6 @@
 package userskills
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 
@@ -51,8 +50,6 @@ func (h *UserSkillHandler) CreateUserSkillHandler(w http.ResponseWriter, r *http
   }
 
   claimsID, err := uuid.Parse(claims.UserID)
-  fmt.Printf("Claims id: %v", claimsID)
-  fmt.Printf("Request id: %v", req.UserID)
 
   if claimsID != req.UserID {
 		http.Error(w, "Please sign in", http.StatusUnauthorized)

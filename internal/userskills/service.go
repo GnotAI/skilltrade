@@ -15,6 +15,7 @@ func NewUserSkillService(repo *UserSkillRepository) *UserSkillService {
 }
 
 func (s *UserSkillService) CreateUserSkillService(userID, skillID uuid.UUID, skillType string) error {
+  
   // Ensure there is a user id
   if userID.String() == "" {
 		return errors.New("UserID needed")
@@ -30,8 +31,17 @@ func (s *UserSkillService) CreateUserSkillService(userID, skillID uuid.UUID, ski
 		return errors.New("invalid skill type: must be 'offering' or 'seeking'")
 	}
 
+	// Check if the user already has this skill
+	exists, err := s.Repo.UserHasSkill(userID, skillID)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.New("user already has this skill")
+	}
+
 	// Call the repository function to create the user skill
-	err := s.Repo.CreateUserSkill(userID, skillID, skillType)
+	err = s.Repo.CreateUserSkill(userID, skillID, skillType)
 	if err != nil {
 		return err
 	}

@@ -63,3 +63,17 @@ func (r *UserSkillRepository) GetUserSkill(userID, skillID uuid.UUID, skillType 
 
     return userSkill, nil
 }
+
+// UserHasSkill checks if a user already has a specific skill
+func (r *UserSkillRepository) UserHasSkill(userID, skillID uuid.UUID) (bool, error) {
+	var count int64
+	err := r.DB.Model(&UserSkill{}).
+		Where("user_id = ? AND skill_id = ?", userID, skillID).
+		Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
