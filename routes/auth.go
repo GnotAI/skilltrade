@@ -15,7 +15,7 @@ var authService = auth.NewAuthService(authRepo)
 // Initialize Handler
 var authHandler = auth.NewAuthHandler(authService)
 
-func authRoutes(authService *auth.AuthService) *chi.Mux {
+func authRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
   r.Group(func(r chi.Router) {

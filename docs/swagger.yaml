@@ -36,6 +36,8 @@ paths:
     post:
       summary: Register a new user
       description: Creates a new user account.
+      tags: 
+        - Auth
       requestBody:
         required: true
         content:
@@ -70,6 +72,8 @@ paths:
     post:
       summary: Authenticate user and issue a JWT
       description: Logs in a user, returning a JWT in the Authorization header.
+      tags: 
+        - Auth
       requestBody:
         required: true
         content:
@@ -114,6 +118,8 @@ paths:
     post:
       summary: Refresh JWT token
       description: Refreshes the authentication token if a valid token is present in the Authorization header.
+      tags:
+        - Auth
       security:
         - bearerAuth: []
       responses:
@@ -136,4 +142,67 @@ paths:
         "401":
           description: Unauthorized (Invalid or expired token)
         "500":
+          description: Internal server error
+
+  /users/skill:
+    post:
+      summary: Add a new skill to a user
+      description: Assigns a skill to the authenticated user.
+      security:
+        - BearerAuth: []
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skill_id:
+                  type: string
+                  format: uuid
+                  example: "d14db7e0-5e4a-4eb9-bb61-5d1df47d32c5"
+      responses:
+        201:
+          description: Skill successfully added to user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Skill added successfully"
+        400:
+          description: Invalid request body
+        401:
+          description: Unauthorized - missing or invalid token
+        500:
+          description: Internal server error
+
+  /skills:
+    get:
+      summary: Retrieve all available skills
+      description: Returns a list of skills available in the system.
+      tags:
+        - Skills
+      responses:
+        200:
+          description: List of skills
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      example: "b71f2f48-7185-4d4f-b7a9-86e8d18e8f02"
+                    name:
+                      type: string
+                      example: "Web Development"
+        500:
           description: Internal server error

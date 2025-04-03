@@ -5,6 +5,7 @@ import (
 
 	"github.com/GnotAI/skilltrade/internal/users"
 	"github.com/GnotAI/skilltrade/utils/hash"
+	"github.com/GnotAI/skilltrade/utils/email"
 	"github.com/GnotAI/skilltrade/utils/jwt"
 )
 
@@ -18,6 +19,11 @@ func NewAuthService(repo *AuthRepository) *AuthService {
 
 // SignUp registers a new user
 func (s *AuthService) SignUp(user *users.User) error {
+
+	// Validate email format before proceeding
+	if err := email.ValidateEmail(user.Email); err != nil {
+		return err 
+	}
 
   if user.Email == "" || user.Password == "" || user.FullName == "" {
     return errors.New("Missing email, password or full name")
