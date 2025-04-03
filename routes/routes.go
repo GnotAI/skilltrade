@@ -21,9 +21,9 @@ func RegisterRoutes() *chi.Mux {
   r.Use(middleware.LoggerMiddleware(log))
 
 	// Mount user routes
-  r.Mount("/auth", authRoutes(authService))
+  r.Mount("/auth", authRoutes())
   r.Mount("/skills", skillsRoutes(skillHandler))
-	r.Mount("/users", userRoutes(userService))
+	// r.Mount("/users", userRoutes(userService))
   r.Mount("/docs", docsRoute())
 
 	return r
