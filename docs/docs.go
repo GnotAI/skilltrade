@@ -9,12 +9,6 @@ import (
 
 var SERV_URL = os.Getenv("SERVER_URL")
 
-func verifyURL()  {
-  if SERV_URL == "" {
-    SERV_URL = "http://localhost:8080"
-  }
-}
-
 func Serve(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "docs/swagger.yaml")
 	}

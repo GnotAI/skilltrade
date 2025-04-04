@@ -1,32 +1,23 @@
-# Use the official Golang image as a base
-FROM golang:1.23.5 AS builder
+# Use the official Go image as the base image
+FROM golang:1.24.1-alpine
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Copy the Go Modules manifests
+# Copy the Go modules manifests
 COPY go.mod go.sum ./
 
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+# Download dependencies
 RUN go mod tidy
 
 # Copy the source code into the container
 COPY . .
 
 # Build the Go app
-RUN go build -o main ./main.go
+RUN go build -o main .
 
-# Start a new stage from scratch
-FROM debian:bullseye-slim
-
-# Install necessary dependencies for the application (if any)
-RUN apt-get update && apt-get install -y ca-certificates && apt-get clean
-
-# Copy the Pre-built binary file from the builder stage
-COPY --from=builder /app/main /main
-
-# Expose port 8080 (change this if your app uses a different port)
+# Expose the port the app runs on
 EXPOSE 3000
 
 # Command to run the executable
-CMD ["/main"]
+CMD ["./main"]

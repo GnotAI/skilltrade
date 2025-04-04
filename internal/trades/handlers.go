@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 
-	jwtutil "github.com/GnotAI/skilltrade/utils/jwt"
 	"github.com/bytedance/sonic"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
