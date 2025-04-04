@@ -30,6 +30,15 @@ func (s *service) RequestTrade(ctx context.Context, senderID, receiverID, sender
 		return nil, errors.New("cannot trade with the same skill")
 	}
 
+    // ✅ Check if a similar pending trade request exists
+    exists, err := s.repo.TradeExists(ctx, senderID, receiverID, senderSkillID, receiverSkillID)
+    if err != nil {
+        return fmt.Errorf("failed to check existing trades: %w", err)
+    }
+    if exists {
+        return errors.New("a pending trade request already exists between these users for the same skills")
+    }
+
 	trade := &TradeRequest{
 		SenderID:        senderID,
 		ReceiverID:      receiverID,
