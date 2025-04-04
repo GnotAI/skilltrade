@@ -26,6 +26,10 @@ func (s *service) RequestTrade(ctx context.Context, senderID, receiverID, sender
 		return nil, errors.New("cannot trade with yourself")
 	}
 
+  if senderSkillID == receiverSkillID {
+		return nil, errors.New("cannot trade with the same skill")
+	}
+
 	trade := &TradeRequest{
 		SenderID:        senderID,
 		ReceiverID:      receiverID,
