@@ -22,10 +22,11 @@ func RegisterRoutes() *chi.Mux {
 	r.Use(middleware.RateLimiterMiddleware())
 
 	// Mount user routes
+  r.Mount("/docs", docsRoute())
   r.Mount("/auth", authRoutes())
   r.Mount("/skills", skillsRoutes())
   r.Mount("/trades", tradeRoutes())
-  r.Mount("/docs", docsRoute())
+  r.Mount("/sessions", sessRoutes())
   // r.Mount("/users", userRoutes())
 
 	return r

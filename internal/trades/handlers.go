@@ -5,21 +5,21 @@ import (
 	"net/http"
 
 	jwtutil "github.com/GnotAI/skilltrade/utils/jwt"
-	"github.com/go-chi/chi/v5"
 	"github.com/bytedance/sonic"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
 type Handler struct {
-	service Service
+	Service *service
 }
 
 type UpdateTradeStatusPayload struct {
 	Status string `json:"status"`
 }
 
-func NewTradeHandler(service Service) *Handler {
-	return &Handler{service: service}
+func NewTradeHandler(service *service) *Handler {
+	return &Handler{Service: service}
 }
 
 type TradeRequestPayload struct {
@@ -29,11 +29,7 @@ type TradeRequestPayload struct {
 }
 
 func (h *Handler) CreateTrade(w http.ResponseWriter, r *http.Request) {
-	claims, err := jwtutil.ParseToken(r.Context().Value("AuthorizationToken").(string))
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
+  userID := r.Context().Value("user_id").(uuid.UUID)
 
   body, err := io.ReadAll(r.Body)
   if err != nil {
@@ -41,19 +37,15 @@ func (h *Handler) CreateTrade(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  defer r.Body.Close()
+
 	var payload TradeRequestPayload
 	if err := sonic.Unmarshal(body, &payload); err != nil {
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return
 	}
 
-  claimsID, err := uuid.Parse(claims.UserID)
-  if err != nil {
-    http.Error(w, "Unauthorized", http.StatusUnauthorized)
-    return
-  }
-
-	trade, err := h.service.RequestTrade(r.Context(), claimsID, payload.ReceiverID, payload.SenderSkillID, payload.ReceiverSkillID)
+	trade, err := h.Service.RequestTrade(r.Context(), userID, payload.ReceiverID, payload.SenderSkillID, payload.ReceiverSkillID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -64,19 +56,9 @@ func (h *Handler) CreateTrade(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetMyTrades(w http.ResponseWriter, r *http.Request) {
-	claims, err := jwtutil.ParseToken(r.Context().Value("AuthorizationToken").(string))
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
+  userID := r.Context().Value("user_id").(uuid.UUID)
 
-  claimsID, err := uuid.Parse(claims.UserID)
-  if err != nil {
-    http.Error(w, "Unauthorized", http.StatusUnauthorized)
-    return
-  }
-
-	trades, err := h.service.GetUserTrades(r.Context(), claimsID)
+	trades, err := h.Service.GetUserTrades(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "Could not fetch trades", http.StatusInternalServerError)
 		return
@@ -86,17 +68,15 @@ func (h *Handler) GetMyTrades(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateTradeStatus(w http.ResponseWriter, r *http.Request) {
-	claims, err := jwtutil.ParseToken(r.Context().Value("AuthorizationToken").(string))
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
+	userID := r.Context().Value("user_id").(uuid.UUID)
 
   body, err := io.ReadAll(r.Body)
   if err != nil {
     http.Error(w, "invalid payload", http.StatusBadRequest)
     return
   }
+
+  defer r.Body.Close()
 
 	tradeIDStr := chi.URLParam(r, "id")
 	tradeID, err := uuid.Parse(tradeIDStr)
@@ -111,13 +91,7 @@ func (h *Handler) UpdateTradeStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  claimsID, err := uuid.Parse(claims.UserID)
-  if err != nil {
-    http.Error(w, "Unauthorized", http.StatusUnauthorized)
-    return
-  }
-
-	err = h.service.UpdateTradeStatus(r.Context(), tradeID, claimsID, payload.Status)
+	err = h.Service.UpdateTradeStatus(r.Context(), tradeID, userID, payload.Status)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

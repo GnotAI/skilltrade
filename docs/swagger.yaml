@@ -15,6 +15,28 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+  schemas:
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tradeID:
+          type: string
+          format: uuid
+        scheduledAt:
+          type: string
+          format: date-time
+        completed:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
 paths:
   /docs/swagger:
     get:
@@ -204,6 +226,10 @@ paths:
                     name:
                       type: string
                       example: "Web Development"
+        400:
+          description: Bad request or invalid data
+        401:
+          description: Unauthorized, invalid token
         500:
           description: Internal server error
 
@@ -240,7 +266,7 @@ paths:
                 - senderSkillID
                 - receiverSkillID
       responses:
-        '201':
+        201:
           description: Successfully created trade request
           content:
             application/json:
@@ -250,7 +276,7 @@ paths:
                   message:
                     type: string
                     example: "Trade request created successfully"
-        '400':
+        400:
           description: Bad request, invalid data or skill status
           content:
             application/json:
@@ -260,7 +286,7 @@ paths:
                   error:
                     type: string
                     example: "Sender's skill is not marked as 'offering'"
-        '401':
+        401:
           description: Unauthorized, invalid token
         '409':
           description: Conflict, pending trade request already exists
@@ -272,7 +298,7 @@ paths:
                   error:
                     type: string
                     example: "A pending trade request already exists"
-        '500':
+        500:
           description: Internal server error, something went wrong on the server
           content:
             application/json:
@@ -314,7 +340,7 @@ paths:
               required:
                 - status
       responses:
-        '200':
+        200:
           description: Successfully updated trade request status
           content:
             application/json:
@@ -324,7 +350,7 @@ paths:
                   message:
                     type: string
                     example: "Trade request accepted"
-        '400':
+        400:
           description: Bad request, invalid status
           content:
             application/json:
@@ -334,9 +360,9 @@ paths:
                   error:
                     type: string
                     example: "Invalid status value. Must be 'accepted' or 'rejected'."
-        '401':
+        401:
           description: Unauthorized, invalid token or receiver not authorized
-        '404':
+        404:
           description: Trade request not found
           content:
             application/json:
@@ -346,7 +372,7 @@ paths:
                   error:
                     type: string
                     example: "Trade request not found"
-        '409':
+        409:
           description: Conflict, trade request status is already the same
           content:
             application/json:
@@ -356,7 +382,7 @@ paths:
                   error:
                     type: string
                     example: "Trade request has already been accepted or rejected"
-        '500':
+        500:
           description: Internal server error, something went wrong on the server
           content:
             application/json:
@@ -366,3 +392,76 @@ paths:
                   error:
                     type: string
                     example: "Internal server error. Please try again later."
+  /sessions:
+    post:
+      summary: Schedule a session
+      description: Schedules a session for an accepted trade. Only the sender or receiver of the trade can schedule.
+      tags:
+        - Sessions
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - trade_id
+                - scheduled_at
+              properties:
+                trade_id:
+                  type: string
+                  format: uuid
+                  description: ID of the accepted trade.
+                scheduled_at:
+                  type: string
+                  format: date-time
+                  description: Time the session is scheduled for (must be in the future).
+      responses:
+        201:
+          description: Session successfully scheduled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        400:
+          description: Invalid input or business rule violation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: Unauthorized.
+        500:
+          description: Internal server error.
+
+  /sessions/{id}/complete:
+    patch:
+      summary: Mark a session as completed
+      description: Marks a session as completed. Only the sender or receiver in the trade can do this.
+      tags:
+        - Sessions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Session ID to mark as completed.
+      responses:
+        200:
+          description: Session marked as completed successfully.
+        400:
+          description: Invalid session ID or business rule violation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: Unauthorized.
+        500:
+          description: Internal server error.

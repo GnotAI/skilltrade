@@ -7,27 +7,28 @@ import (
   "github.com/GnotAI/skilltrade/internal/userskills"
 )
 
-type Repository interface {
-	CreateTrade(ctx context.Context, trade *TradeRequest) error
-	GetTradesByUserID(ctx context.Context, userID uuid.UUID) ([]TradeRequest, error)
-  UpdateTradeStatus(ctx context.Context, tradeID uuid.UUID, status string) error
-  TradeExists(ctx context.Context, senderID, receiverID, senderSkillID, receiverSkillID uuid.UUID) (bool, error)
-  checkSenderSkillOffering(senderID, senderSkillID uuid.UUID) (bool, error)
-}
-
-type repository struct {
+type TradeRepository struct {
 	db *gorm.DB
 }
 
-func NewTradeRepository(db *gorm.DB) Repository {
-	return &repository{db: db}
+func NewTradeRepository(db *gorm.DB) *TradeRepository {
+	return &TradeRepository{db: db}
 }
 
-func (r *repository) CreateTrade(ctx context.Context, trade *TradeRequest) error {
+func (r *TradeRepository) CreateTrade(ctx context.Context, trade *TradeRequest) error {
 	return r.db.WithContext(ctx).Create(trade).Error
 }
 
-func (r *repository) GetTradesByUserID(ctx context.Context, userID uuid.UUID) ([]TradeRequest, error) {
+func (r *TradeRepository) GetTradeRequestByID(tradeID uuid.UUID) (*TradeRequest, error) {
+    var trade TradeRequest
+    result := r.db.First(&trade, "id = ?", tradeID)
+    if result.Error != nil {
+        return nil, result.Error
+    }
+    return &trade, nil
+}
+
+func (r *TradeRepository) GetTradesByUserID(ctx context.Context, userID uuid.UUID) ([]TradeRequest, error) {
 	var trades []TradeRequest
 	err := r.db.WithContext(ctx).
 		Where("sender_id = ? OR receiver_id = ?", userID, userID).
@@ -39,7 +40,7 @@ func (r *repository) GetTradesByUserID(ctx context.Context, userID uuid.UUID) ([
 	return trades, err
 }
 
-func (r *repository) UpdateTradeStatus(ctx context.Context, tradeID uuid.UUID, status string) error {
+func (r *TradeRepository) UpdateTradeStatus(ctx context.Context, tradeID uuid.UUID, status string) error {
 	return r.db.WithContext(ctx).
 		Model(&TradeRequest{}).
 		Where("id = ?", tradeID).
@@ -47,7 +48,7 @@ func (r *repository) UpdateTradeStatus(ctx context.Context, tradeID uuid.UUID, s
 }
 
 // TradeExists checks if a pending trade request already exists between two users for the same skill exchange.
-func (r *repository) TradeExists(ctx context.Context, senderID, receiverID, senderSkillID, receiverSkillID uuid.UUID) (bool, error) {
+func (r *TradeRepository) TradeExists(ctx context.Context, senderID, receiverID, senderSkillID, receiverSkillID uuid.UUID) (bool, error) {
     var count int64
     err := r.db.Model(&TradeRequest{}).
         Where("sender_id = ? AND receiver_id = ? AND sender_skill_id = ? AND receiver_skill_id = ? AND status = 'pending'",
@@ -58,7 +59,7 @@ func (r *repository) TradeExists(ctx context.Context, senderID, receiverID, send
 }
 
 // checkSenderSkillOffering checks if the sender's skill is set as "offering" in the user_skills table
-func (r *repository) checkSenderSkillOffering(senderID, senderSkillID uuid.UUID) (bool, error) {
+func (r *TradeRepository) checkSenderSkillOffering(senderID, senderSkillID uuid.UUID) (bool, error) {
     var userSkill struct {
         Type string `gorm:"column:type"`
     }

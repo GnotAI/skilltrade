@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/GnotAI/skilltrade/utils/jwt"
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
 )
@@ -18,17 +17,7 @@ func NewUserSkillHandler(service *UserSkillService) *UserSkillHandler {
 }
 
 func (h *UserSkillHandler) CreateUserSkillHandler(w http.ResponseWriter, r *http.Request) {
-  token, ok := r.Context().Value("AuthorizationToken").(string)
-  if !ok {
-		http.Error(w, "Authorization token not found", http.StatusUnauthorized)
-		return
-  }
-
-	claims, err := jwtutil.ParseToken(token)
-	if err != nil {
-		http.Error(w, "invalid token", http.StatusBadRequest)
-    return
-	}
+  userID := r.Context().Value("user_id").(uuid.UUID)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -49,9 +38,7 @@ func (h *UserSkillHandler) CreateUserSkillHandler(w http.ResponseWriter, r *http
 		return
   }
 
-  claimsID, err := uuid.Parse(claims.UserID)
-
-  if claimsID != req.UserID {
+  if userID != req.UserID {
 		http.Error(w, "Please sign in", http.StatusUnauthorized)
 		return
   }

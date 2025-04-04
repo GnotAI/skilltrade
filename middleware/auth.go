@@ -38,6 +38,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// Store the user information in the request context for later use
 		// This can be useful to access the authenticated user in the handler
     ctx := context.WithValue(r.Context(), "AuthorizationToken", tokenString) 
+    ctx = context.WithValue(r.Context(), "user_id", claims.UserID) 
 		r = r.WithContext(ctx)
 
 		// Proceed to the next handler

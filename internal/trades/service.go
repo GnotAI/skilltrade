@@ -9,18 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type Service interface {
-	RequestTrade(ctx context.Context, senderID, receiverID, senderSkillID, receiverSkillID uuid.UUID) (*TradeRequest, error)
-	GetUserTrades(ctx context.Context, userID uuid.UUID) ([]TradeRequest, error)
-  UpdateTradeStatus(ctx context.Context, tradeID uuid.UUID, userID uuid.UUID, status string) error
-}
-
 type service struct {
-	repo Repository
+	repo *TradeRepository
 	UserSkillService *userskills.UserSkillService
 }
 
-func NewTradeService(repo Repository) Service {
+func NewTradeService(repo *TradeRepository) *service {
 	return &service{repo: repo}
 }
 
