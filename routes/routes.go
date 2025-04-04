@@ -23,9 +23,10 @@ func RegisterRoutes() *chi.Mux {
 
 	// Mount user routes
   r.Mount("/auth", authRoutes())
-  r.Mount("/skills", skillsRoutes(skillHandler))
-	// r.Mount("/users", userRoutes(userService))
+  r.Mount("/skills", skillsRoutes())
+  r.Mount("/trades", tradeRoutes())
   r.Mount("/docs", docsRoute())
+  // r.Mount("/users", userRoutes())
 
 	return r
 }

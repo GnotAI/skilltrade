@@ -20,7 +20,7 @@ var userSkillService = userskills.NewUserSkillService(userSkillRepo)
 var userHandler = users.NewUserHandler(userService)
 var userSkillHandler = userskills.NewUserSkillHandler(userSkillService)
 
-func userRoutes(userService *users.UserService) *chi.Mux {
+func userRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
   r.Group(func(r chi.Router) {
