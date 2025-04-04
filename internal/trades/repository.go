@@ -42,3 +42,14 @@ func (r *repository) UpdateTradeStatus(ctx context.Context, tradeID uuid.UUID, s
 		Where("id = ?", tradeID).
 		Update("status", status).Error
 }
+
+// TradeExists checks if a pending trade request already exists between two users for the same skill exchange.
+func (r *Repository) TradeExists(ctx context.Context, senderID, receiverID, senderSkillID, receiverSkillID uuid.UUID) (bool, error) {
+    var count int64
+    err := r.db.Model(&TradeRequest{}).
+        Where("sender_id = ? AND receiver_id = ? AND sender_skill_id = ? AND receiver_skill_id = ? AND status = 'pending'",
+            senderID, receiverID, senderSkillID, receiverSkillID).
+        Count(&count).Error
+
+    return count > 0, err
+}
