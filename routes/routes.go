@@ -19,6 +19,7 @@ func RegisterRoutes() *chi.Mux {
 
   // Initialize middleware
   r.Use(middleware.LoggerMiddleware(log))
+	r.Use(middleware.RateLimiterMiddleware())
 
 	// Mount user routes
   r.Mount("/auth", authRoutes())
