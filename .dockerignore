@@ -1,0 +1,25 @@
+# Ignore the .git directory (already ignored by gitignore)
+.git/
+
+# Ignore Go build artifacts
+*.exe
+*.out
+*.test
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore node_modules or vendor if applicable
+node_modules/
+vendor/
+tmp/
+.gitignore
+air.toml
+
+# Ignore .env files for sensitive information
+.env
+
+# Ignore Docker-specific files
+Dockerfile
+docker-compose.yml
