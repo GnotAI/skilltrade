@@ -18,6 +18,7 @@ func tradeRoutes() *chi.Mux {
     r.Use(middleware.AuthMiddleware)
     
     r.Post("/", tradeHandler.CreateTrade)
+    r.Patch("/:id", tradeHandler.UpdateTradeStatus)
   })
 
   return r
