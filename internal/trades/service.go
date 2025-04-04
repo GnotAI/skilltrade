@@ -3,7 +3,9 @@ package trades
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/GnotAI/skilltrade/internal/userskills"
 	"github.com/google/uuid"
 )
 
@@ -15,6 +17,7 @@ type Service interface {
 
 type service struct {
 	repo Repository
+	UserSkillService *userskills.UserSkillService
 }
 
 func NewTradeService(repo Repository) Service {
@@ -22,32 +25,50 @@ func NewTradeService(repo Repository) Service {
 }
 
 func (s *service) RequestTrade(ctx context.Context, senderID, receiverID, senderSkillID, receiverSkillID uuid.UUID) (*TradeRequest, error) {
-	if senderID == receiverID {
-		return nil, errors.New("cannot trade with yourself")
-	}
+  if senderID == receiverID {
+    return nil, errors.New("cannot trade with yourself")
+  }
 
   if senderSkillID == receiverSkillID {
-		return nil, errors.New("cannot trade with the same skill")
-	}
+    return nil, errors.New("cannot trade with the same skill")
+  }
 
-    // ✅ Check if a similar pending trade request exists
-    exists, err := s.repo.TradeExists(ctx, senderID, receiverID, senderSkillID, receiverSkillID)
-    if err != nil {
-        return fmt.Errorf("failed to check existing trades: %w", err)
-    }
-    if exists {
-        return errors.New("a pending trade request already exists between these users for the same skills")
-    }
+  // Check if the sender and receiver skills are marked as "offering" in their user_skills entries
+  isSendOffering, err := s.repo.checkSenderSkillOffering(senderID, senderSkillID)
+  if err != nil {
+    return nil, fmt.Errorf("failed to check sender's skill status: %w", err)
+  }
+  if !isSendOffering {
+    return nil, errors.New("sender's skill is not marked as 'offering'")
+  }
 
-	trade := &TradeRequest{
-		SenderID:        senderID,
-		ReceiverID:      receiverID,
-		SenderSkillID:   senderSkillID,
-		ReceiverSkillID: receiverSkillID,
-	}
+  isRecOffering, err := s.repo.checkSenderSkillOffering(receiverID, receiverSkillID)
+  if err != nil {
+    return nil, fmt.Errorf("failed to check receiver's skill status: %w", err)
+  }
+  if !isRecOffering {
+    return nil, errors.New("receiver's skill is not marked as 'offering'")
+  }
 
-	err := s.repo.CreateTrade(ctx, trade)
-	return trade, err
+  // Check if a similar pending trade request exists
+  exists, err := s.repo.TradeExists(ctx, senderID, receiverID, senderSkillID, receiverSkillID)
+  if err != nil {
+    return nil, fmt.Errorf("failed to check existing trades: %w", err)
+  }
+  if exists {
+    return nil, errors.New("a pending trade request already exists between these users for the same skills")
+  }
+
+
+  trade := &TradeRequest{
+    SenderID:        senderID,
+    ReceiverID:      receiverID,
+    SenderSkillID:   senderSkillID,
+    ReceiverSkillID: receiverSkillID,
+  }
+
+  err = s.repo.CreateTrade(ctx, trade)
+  return trade, err
 }
 
 func (s *service) GetUserTrades(ctx context.Context, userID uuid.UUID) ([]TradeRequest, error) {

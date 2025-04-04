@@ -49,6 +49,6 @@ func (s *UserSkillService) CreateUserSkillService(userID, skillID uuid.UUID, ski
 	return nil
 }
 
-func (s *UserSkillService) GetUserSkill(userID, skillID uuid.UUID, skillType string) (*UserSkill, error) {
-    return s.Repo.GetUserSkill(userID, skillID, skillType)
+func (s *UserSkillService) GetUserSkill(userID, skillID uuid.UUID) (*UserSkill, error) {
+    return s.Repo.GetUserSkill(userID, skillID)
 }
