@@ -206,3 +206,163 @@ paths:
                       example: "Web Development"
         500:
           description: Internal server error
+
+  /trades:
+    post:
+      summary: Create a new trade request
+      description: Creates a new trade request between the sender (identified by the token) and the receiver (provided in the request body).
+      tags:
+        - Trade
+      security:
+        - bearerAuth: []
+      operationId: CreateTrade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                receiverID:
+                  type: string
+                  format: uuid
+                  description: The UUID of the user receiving the trade request
+                senderSkillID:
+                  type: string
+                  format: uuid
+                  description: The UUID of the skill the sender is offering
+                receiverSkillID:
+                  type: string
+                  format: uuid
+                  description: The UUID of the skill the receiver is offering
+              required:
+                - receiverID
+                - senderSkillID
+                - receiverSkillID
+      responses:
+        '201':
+          description: Successfully created trade request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Trade request created successfully"
+        '400':
+          description: Bad request, invalid data or skill status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Sender's skill is not marked as 'offering'"
+        '401':
+          description: Unauthorized, invalid token
+        '409':
+          description: Conflict, pending trade request already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "A pending trade request already exists"
+        '500':
+          description: Internal server error, something went wrong on the server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error. Please try again later."
+              
+  /trades/{id}:
+    patch:
+      summary: Accept or reject a trade request
+      description: Allows the receiver (verified by token) to accept or reject a trade request.
+      operationId: updateTradeStatus
+      tags:
+        - Trade
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The UUID of the trade request to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [accepted, rejected]
+                  description: The new status of the trade request (either "accepted" or "rejected")
+              required:
+                - status
+      responses:
+        '200':
+          description: Successfully updated trade request status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Trade request accepted"
+        '400':
+          description: Bad request, invalid status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid status value. Must be 'accepted' or 'rejected'."
+        '401':
+          description: Unauthorized, invalid token or receiver not authorized
+        '404':
+          description: Trade request not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Trade request not found"
+        '409':
+          description: Conflict, trade request status is already the same
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Trade request has already been accepted or rejected"
+        '500':
+          description: Internal server error, something went wrong on the server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error. Please try again later."
